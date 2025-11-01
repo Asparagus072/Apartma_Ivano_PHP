@@ -1,47 +1,86 @@
-<div class="container">
-    <h1 class="mb-4">About Apartma Ivano</h1>
-    
+<div class="container my-5">
     <div class="row">
-        <div class="col-lg-8">
-            <p class="lead">Welcome to Apartma Ivano, your home away from home in beautiful Kranj, Slovenia.</p>
+        <div class="col-lg-8 mx-auto">
+            <h1 class="mb-4">About Apartma Ivano</h1>
             
-            <h3>Our Story</h3>
-            <p>Apartma Ivano has been welcoming guests since 2020, offering a comfortable and modern living space perfect for families, groups of friends, or business travelers. Our apartment combines the convenience of a prime location with the comfort of a fully equipped home.</p>
+            <p class="lead">Welcome to Apartma Ivano, your perfect home away from home in beautiful Kranj, Slovenia.</p>
             
-            <h3>What We Offer</h3>
-            <ul>
-                <li><strong>Spacious Living:</strong> 100m² apartment with 3 bedrooms</li>
-                <li><strong>Full Kitchen:</strong> Cook your own meals with all necessary appliances</li>
-                <li><strong>Modern Amenities:</strong> WiFi, Smart TV, washing machine, and more</li>
-                <li><strong>Great Location:</strong> Walking distance to Kranj center, 20 minutes to Ljubljana</li>
-                <li><strong>Free Parking:</strong> Dedicated parking space included</li>
-            </ul>
-            
-            <h3>Why Choose Us?</h3>
-            <p>We pride ourselves on providing excellent service and maintaining our property to the highest standards. Our guests consistently rate us 5 stars for cleanliness, comfort, and hospitality.</p>
-        </div>
-        
-        <div class="col-lg-4">
-            <div class="card">
+            <div class="card mb-4">
                 <div class="card-body">
-                    <h4>Quick Facts</h4>
-                    <ul class="list-unstyled">
-                        <li><i class="fas fa-users text-primary"></i> Up to 6 guests</li>
-                        <li><i class="fas fa-bed text-primary"></i> 3 bedrooms</li>
-                        <li><i class="fas fa-bath text-primary"></i> 2 bathrooms</li>
-                        <li><i class="fas fa-expand text-primary"></i> 100m²</li>
-                        <li><i class="fas fa-building text-primary"></i> 2nd floor</li>
-                        <li><i class="fas fa-car text-primary"></i> Free parking</li>
+                    <h3>Our Story</h3>
+                    <p>Since 2020, Apartma Ivano has been welcoming guests from around the world, offering a comfortable and modern living space perfect for families, groups of friends, or business travelers. Our apartment combines the convenience of a prime location with the comfort of a fully equipped home.</p>
+                </div>
+            </div>
+            
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h4><i class="fas fa-home text-primary"></i> The Apartment</h4>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success"></i> 100m² of living space</li>
+                                <li><i class="fas fa-check text-success"></i> 3 comfortable bedrooms</li>
+                                <li><i class="fas fa-check text-success"></i> 2 modern bathrooms</li>
+                                <li><i class="fas fa-check text-success"></i> Fully equipped kitchen</li>
+                                <li><i class="fas fa-check text-success"></i> Spacious living room</li>
+                                <li><i class="fas fa-check text-success"></i> Balcony with views</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h4><i class="fas fa-star text-primary"></i> Amenities</h4>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-wifi text-success"></i> Free high-speed WiFi</li>
+                                <li><i class="fas fa-tv text-success"></i> Smart TV with Netflix</li>
+                                <li><i class="fas fa-car text-success"></i> Free parking space</li>
+                                <li><i class="fas fa-snowflake text-success"></i> Air conditioning</li>
+                                <li><i class="fas fa-tshirt text-success"></i> Washing machine</li>
+                                <li><i class="fas fa-coffee text-success"></i> Coffee machine</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3><i class="fas fa-map-marker-alt text-primary"></i> Location</h3>
+                    <p>Located in Kranj, Slovenia's fourth-largest city, our apartment offers the perfect base for exploring the country:</p>
+                    <ul>
+                        <li><strong>20 minutes</strong> from Ljubljana Airport</li>
+                        <li><strong>25 minutes</strong> from Ljubljana city center</li>
+                        <li><strong>30 minutes</strong> from Lake Bled</li>
+                        <li><strong>45 minutes</strong> from skiing resorts</li>
+                        <li><strong>Walking distance</strong> to Kranj old town</li>
                     </ul>
                 </div>
             </div>
             
-            <div class="card mt-3">
+            <div class="card">
                 <div class="card-body">
-                    <h4>Contact Us</h4>
-                    <p><i class="fas fa-phone"></i> +386 XX XXX XXX</p>
-                    <p><i class="fas fa-envelope"></i> info@apartmaivano.com</p>
-                    <p><i class="fas fa-map-marker-alt"></i> Kranj, Slovenia</p>
+                    <h3><i class="fas fa-shield-alt text-primary"></i> House Rules</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul>
+                                <li>Check-in: 15:00 - 22:00</li>
+                                <li>Check-out: until 11:00</li>
+                                <li>Maximum 6 guests</li>
+                                <li>No smoking inside</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul>
+                                <li>No parties or events</li>
+                                <li>No pets allowed</li>
+                                <li>Quiet hours: 22:00 - 08:00</li>
+                                <li>Respect the neighbors</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

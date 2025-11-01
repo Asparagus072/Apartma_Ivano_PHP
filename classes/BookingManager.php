@@ -1,137 +1,147 @@
 <?php
-class BookingManager {
+/**
+ * Simplified Booking System
+ */
+class BookingSystem {
     private $db;
-    private $pricingManager;
-
-    public function __construct() {
-        $this->db = Database::getInstance()->getConnection();
-        $this->pricingManager = new PricingManager();
+    private $pricing = [
+        'low' => 80,    // Jan-Mar, Nov-Dec
+        'mid' => 100,   // Apr-May, Sep-Oct
+        'high' => 130,  // Jun-Aug
+        'peak' => 150   // Christmas/New Year
+    ];
+    
+    public function __construct($database) {
+        $this->db = $database;
     }
-
+    
+    public function checkAvailability($checkin, $checkout, $excludeId = null) {
+        $where = "((checkin <= ? AND checkout > ?) OR (checkin < ? AND checkout >= ?) OR (checkin >= ? AND checkout <= ?))";
+        $params = [$checkout, $checkin, $checkout, $checkout, $checkin, $checkout];
+        
+        if ($excludeId) {
+            $where .= " AND id != ?";
+            $params[] = $excludeId;
+        }
+        
+        $count = $this->db->count('bookings', $where, $params);
+        return $count == 0;
+    }
+    
+    public function calculatePrice($checkin, $checkout) {
+        $start = new DateTime($checkin);
+        $end = new DateTime($checkout);
+        $nights = $start->diff($end)->days;
+        $total = 0;
+        
+        while ($start < $end) {
+            $month = (int)$start->format('n');
+            $dateStr = $start->format('Y-m-d');
+            
+            // Peak season (Christmas/New Year)
+            if (($start->format('m-d') >= '12-20') || ($start->format('m-d') <= '01-07')) {
+                $total += $this->pricing['peak'];
+            }
+            // High season (Jun-Aug)
+            elseif ($month >= 6 && $month <= 8) {
+                $total += $this->pricing['high'];
+            }
+            // Mid season (Apr-May, Sep-Oct)
+            elseif (($month >= 4 && $month <= 5) || ($month >= 9 && $month <= 10)) {
+                $total += $this->pricing['mid'];
+            }
+            // Low season
+            else {
+                $total += $this->pricing['low'];
+            }
+            
+            $start->add(new DateInterval('P1D'));
+        }
+        
+        // Apply discounts
+        $discount = 0;
+        if ($nights >= 14) {
+            $discount = $total * 0.15; // 15% off for 14+ nights
+        } elseif ($nights >= 7) {
+            $discount = $total * 0.10; // 10% off for 7+ nights
+        } elseif ($nights >= 3) {
+            $discount = $total * 0.05; // 5% off for 3+ nights
+        }
+        
+        return [
+            'subtotal' => $total,
+            'discount' => $discount,
+            'total' => $total - $discount,
+            'nights' => $nights,
+            'per_night' => ($total - $discount) / $nights
+        ];
+    }
+    
+    public function getNights($checkin, $checkout) {
+        $start = new DateTime($checkin);
+        $end = new DateTime($checkout);
+        return $start->diff($end)->days;
+    }
+    
+    public function createBooking($checkin, $checkout, $guests, $name, $email, $phone, $notes = '') {
+        // Validate
+        if (!$this->checkAvailability($checkin, $checkout)) {
+            return false;
+        }
+        
+        if ($guests < 1 || $guests > MAX_GUESTS) {
+            return false;
+        }
+        
+        $pricing = $this->calculatePrice($checkin, $checkout);
+        
+        return $this->db->insert('bookings', [
+            'checkin' => $checkin,
+            'checkout' => $checkout,
+            'guests' => $guests,
+            'name' => $name,
+            'email' => $email,
+            'phone' => $phone,
+            'notes' => $notes,
+            'total_price' => $pricing['total'],
+            'status' => 'confirmed'
+        ]);
+    }
+    
     public function getAllBookings() {
-        $stmt = $this->db->query("
+        return $this->db->fetchAll("
             SELECT *, 
                    (julianday(checkout) - julianday(checkin)) as nights,
                    CASE 
                        WHEN checkin > date('now') THEN 'upcoming'
                        WHEN checkout < date('now') THEN 'past'
                        ELSE 'current'
-                   END as status
+                   END as booking_status
             FROM bookings 
-            ORDER BY checkin DESC, id DESC
+            ORDER BY checkin DESC
         ");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
-    public function getBookingById($id) {
-        $stmt = $this->db->prepare("
-            SELECT *, 
-                   (julianday(checkout) - julianday(checkin)) as nights
-            FROM bookings 
-            WHERE id = ?
-        ");
-        $stmt->execute([$id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    public function getBooking($id) {
+        return $this->db->fetchOne("SELECT * FROM bookings WHERE id = ?", [$id]);
     }
-
-    public function updateBooking($id, $checkin, $checkout, $guests, $name, $email, $phone, $notes = '') {
-        // Validate dates
-        if (!$this->isDateAvailable($checkin, $checkout, $id)) {
-            throw new Exception('Selected dates are not available');
-        }
-
-        // Calculate new total price
-        $pricing = $this->pricingManager->calculateStayTotal($checkin, $checkout);
-        
-        $stmt = $this->db->prepare("
-            UPDATE bookings 
-            SET checkin = ?, checkout = ?, guests = ?, name = ?, email = ?, phone = ?, 
-                total_price = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-        ");
-        return $stmt->execute([
-            $checkin, $checkout, $guests, $name, $email, $phone, 
-            $pricing['total'], $notes, $id
-        ]);
-    }
-
+    
     public function deleteBooking($id) {
-        $stmt = $this->db->prepare("DELETE FROM bookings WHERE id = ?");
-        return $stmt->execute([$id]);
+        return $this->db->delete('bookings', 'id = ?', [$id]);
     }
-
-    public function getBookingStats() {
-        $stats = [];
-        
-        // Total bookings
-        $stmt = $this->db->query("SELECT COUNT(*) as total FROM bookings");
-        $stats['total_bookings'] = $stmt->fetchColumn();
-        
-        // Monthly bookings
-        $stmt = $this->db->query("
-            SELECT COUNT(*) as monthly 
-            FROM bookings 
-            WHERE strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')
-        ");
-        $stats['monthly_bookings'] = $stmt->fetchColumn();
-        
-        // Upcoming bookings
-        $stmt = $this->db->query("
-            SELECT COUNT(*) as upcoming 
-            FROM bookings 
-            WHERE checkin >= date('now')
-        ");
-        $stats['upcoming_bookings'] = $stmt->fetchColumn();
-        
-        // Current guests
-        $stmt = $this->db->query("
-            SELECT COALESCE(SUM(guests), 0) as current_guests
-            FROM bookings 
-            WHERE checkin <= date('now') AND checkout > date('now')
-        ");
-        $stats['current_guests'] = $stmt->fetchColumn();
-        
-        // Revenue calculations
-        $stmt = $this->db->query("
-            SELECT 
-                COALESCE(SUM(total_price), 0) as total_revenue,
-                COALESCE(SUM(CASE WHEN strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now') 
-                    THEN total_price ELSE 0 END), 0) as monthly_revenue,
-                COALESCE(SUM(CASE WHEN checkin >= date('now') 
-                    THEN total_price ELSE 0 END), 0) as upcoming_revenue
-            FROM bookings
-        ");
-        $revenue = $stmt->fetch(PDO::FETCH_ASSOC);
-        $stats = array_merge($stats, $revenue);
-        
-        // Occupancy rate (last 30 days)
-        $stmt = $this->db->query("
-            SELECT 
-                COUNT(DISTINCT date(checkin, '+' || (julianday(checkout) - julianday(checkin)) || ' days')) as occupied_days
-            FROM bookings 
-            WHERE checkin >= date('now', '-30 days') AND checkin < date('now')
-        ");
-        $occupiedDays = $stmt->fetchColumn();
-        $stats['occupancy_rate'] = round(($occupiedDays / 30) * 100, 1);
-        
-        // Average booking value
-        $stats['avg_booking_value'] = $stats['total_bookings'] > 0 
-            ? round($stats['total_revenue'] / $stats['total_bookings'], 2) 
-            : 0;
-        
-        return $stats;
-    }
-
+    
     public function getDisabledDates() {
-        $stmt = $this->db->query("SELECT checkin, checkout FROM bookings WHERE checkout >= date('now')");
-        $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $bookings = $this->db->fetchAll("
+            SELECT checkin, checkout 
+            FROM bookings 
+            WHERE checkout >= date('now')
+        ");
         
         $disabledDates = [];
         foreach ($bookings as $booking) {
             $start = new DateTime($booking['checkin']);
             $end = new DateTime($booking['checkout']);
             
-            // Include all dates from checkin to checkout (inclusive)
             while ($start < $end) {
                 $disabledDates[] = $start->format('Y-m-d');
                 $start->add(new DateInterval('P1D'));
@@ -140,211 +150,32 @@ class BookingManager {
         
         return array_unique($disabledDates);
     }
-
-    public function createBooking($checkin, $checkout, $guests, $name, $email, $phone, $notes = '', $source = 'direct') {
-        // Validate input
-        $this->validateBookingData($checkin, $checkout, $guests, $name, $email, $phone);
+    
+    public function getStats() {
+        $total = $this->db->count('bookings');
         
-        // Check availability
-        if (!$this->isDateAvailable($checkin, $checkout)) {
-            throw new Exception('Selected dates are not available');
-        }
-
-        // Calculate pricing
-        $pricing = $this->pricingManager->calculateStayTotal($checkin, $checkout);
-        
-        $stmt = $this->db->prepare("
-            INSERT INTO bookings (checkin, checkout, guests, name, email, phone, notes, source, total_price) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ");
-        
-        $result = $stmt->execute([
-            $checkin, $checkout, $guests, $name, $email, $phone, 
-            $notes, $source, $pricing['total']
-        ]);
-        
-        if ($result) {
-            return $this->db->lastInsertId();
-        }
-        
-        return false;
-    }
-
-    private function validateBookingData($checkin, $checkout, $guests, $name, $email, $phone) {
-        $errors = [];
-        
-        // Date validation
-        $checkinDate = new DateTime($checkin);
-        $checkoutDate = new DateTime($checkout);
-        $today = new DateTime();
-        
-        if ($checkinDate < $today) {
-            $errors[] = 'Check-in date cannot be in the past';
-        }
-        
-        if ($checkoutDate <= $checkinDate) {
-            $errors[] = 'Check-out date must be after check-in date';
-        }
-        
-        $nights = $checkinDate->diff($checkoutDate)->days;
-        if ($nights > 30) {
-            $errors[] = 'Maximum stay is 30 nights';
-        }
-        
-        // Guest validation
-        if ($guests < 1 || $guests > 6) {
-            $errors[] = 'Number of guests must be between 1 and 6';
-        }
-        
-        // Contact validation
-        if (empty(trim($name))) {
-            $errors[] = 'Name is required';
-        }
-        
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = 'Valid email is required';
-        }
-        
-        if (empty(trim($phone))) {
-            $errors[] = 'Phone number is required';
-        }
-        
-        if (!empty($errors)) {
-            throw new Exception(implode(', ', $errors));
-        }
-    }
-
-    public function isDateAvailable($checkin, $checkout, $excludeId = null) {
-        $sql = "
-            SELECT COUNT(*) FROM bookings 
-            WHERE ((checkin < ? AND checkout > ?) 
-               OR (checkin < ? AND checkout > ?)
-               OR (checkin >= ? AND checkout <= ?))
-        ";
-        $params = [$checkout, $checkin, $checkout, $checkout, $checkin, $checkout];
-        
-        if ($excludeId) {
-            $sql .= " AND id != ?";
-            $params[] = $excludeId;
-        }
-        
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchColumn() == 0;
-    }
-
-    public function getMonthlyBookings() {
-        $stmt = $this->db->query("
+        $revenue = $this->db->fetchOne("
             SELECT 
-                strftime('%Y-%m', checkin) as month,
-                COUNT(*) as count,
-                COALESCE(SUM(total_price), 0) as revenue
+                COALESCE(SUM(total_price), 0) as total_revenue,
+                COALESCE(AVG(total_price), 0) as avg_booking
+            FROM bookings
+        ");
+        
+        $upcoming = $this->db->count('bookings', "checkin >= date('now')");
+        
+        $occupancyData = $this->db->fetchOne("
+            SELECT 
+                COUNT(DISTINCT date(checkin, '+' || (julianday(checkout) - julianday(checkin)) || ' days')) as occupied_days
             FROM bookings 
-            WHERE checkin >= date('now', '-12 months')
-            GROUP BY strftime('%Y-%m', checkin)
-            ORDER BY month
+            WHERE checkin >= date('now', '-30 days') AND checkin < date('now')
         ");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function getUpcomingBookings($limit = 5) {
-        $stmt = $this->db->prepare("
-            SELECT *, 
-                   (julianday(checkout) - julianday(checkin)) as nights
-            FROM bookings 
-            WHERE checkin >= date('now')
-            ORDER BY checkin ASC
-            LIMIT ?
-        ");
-        $stmt->execute([$limit]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function getCurrentBookings() {
-        $stmt = $this->db->query("
-            SELECT *, 
-                   (julianday(checkout) - julianday(checkin)) as nights
-            FROM bookings 
-            WHERE checkin <= date('now') AND checkout > date('now')
-            ORDER BY checkin ASC
-        ");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function searchBookings($query) {
-        $stmt = $this->db->prepare("
-            SELECT *, 
-                   (julianday(checkout) - julianday(checkin)) as nights
-            FROM bookings 
-            WHERE name LIKE ? OR email LIKE ? OR phone LIKE ?
-            ORDER BY checkin DESC
-        ");
-        $searchTerm = '%' . $query . '%';
-        $stmt->execute([$searchTerm, $searchTerm, $searchTerm]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function getAvailabilityCalendar($month = null, $year = null) {
-        if (!$month) $month = date('m');
-        if (!$year) $year = date('Y');
         
-        $startDate = new DateTime("$year-$month-01");
-        $endDate = clone $startDate;
-        $endDate->add(new DateInterval('P1M'));
-        
-        $stmt = $this->db->prepare("
-            SELECT checkin, checkout, name, guests
-            FROM bookings 
-            WHERE (checkin < ? AND checkout > ?)
-            ORDER BY checkin
-        ");
-        $stmt->execute([$endDate->format('Y-m-d'), $startDate->format('Y-m-d')]);
-        $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        $calendar = [];
-        $current = clone $startDate;
-        
-        while ($current < $endDate) {
-            $dateStr = $current->format('Y-m-d');
-            $calendar[$dateStr] = [
-                'available' => true,
-                'bookings' => []
-            ];
-            
-            foreach ($bookings as $booking) {
-                if ($dateStr >= $booking['checkin'] && $dateStr < $booking['checkout']) {
-                    $calendar[$dateStr]['available'] = false;
-                    $calendar[$dateStr]['bookings'][] = $booking;
-                }
-            }
-            
-            $current->add(new DateInterval('P1D'));
-        }
-        
-        return $calendar;
-    }
-
-    public function cancelBooking($id, $reason = '') {
-        $booking = $this->getBookingById($id);
-        if (!$booking) {
-            throw new Exception('Booking not found');
-        }
-        
-        // Archive the booking before deletion
-        $stmt = $this->db->prepare("
-            INSERT INTO cancelled_bookings 
-            (original_id, checkin, checkout, guests, name, email, phone, total_price, 
-             cancellation_reason, cancelled_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ");
-        $stmt->execute([
-            $id, $booking['checkin'], $booking['checkout'], $booking['guests'],
-            $booking['name'], $booking['email'], $booking['phone'], 
-            $booking['total_price'], $reason
-        ]);
-        
-        // Delete original booking
-        return $this->deleteBooking($id);
+        return [
+            'total_bookings' => $total,
+            'total_revenue' => $revenue['total_revenue'],
+            'avg_booking' => $revenue['avg_booking'],
+            'upcoming_bookings' => $upcoming,
+            'occupancy_rate' => round(($occupancyData['occupied_days'] / 30) * 100, 1)
+        ];
     }
 }
-?>
