@@ -1,8 +1,5 @@
 <?php
-/**
- * Apartma Ivano - Simplified Booking System
- * Main entry point
- */
+
 
 session_start();
 error_reporting(E_ALL);
@@ -13,7 +10,7 @@ define('DB_PATH', 'database/apartma.db');
 define('SITE_NAME', 'Apartma Ivano');
 define('MAX_GUESTS', 6);
 define('ADMIN_USER', 'admin');
-define('ADMIN_PASS', '$2y$10$YourHashedPasswordHere'); // Use password_hash('your_password', PASSWORD_DEFAULT)
+define('ADMIN_PASS', '$2y$10$yOI0Ufb5GZXAuER6dBh.HOdEuw8vwMp.asGwHIoyQcqOIIOeIdDV6'); // Use password_hash('your_password', PASSWORD_DEFAULT)
 
 // Initialize database
 require_once 'classes/Database.php';
@@ -294,12 +291,12 @@ unset($_SESSION['flash']);
             <div class="row">
                 <div class="col-md-6">
                     <h5><?php echo SITE_NAME; ?></h5>
-                    <p>Your perfect holiday destination in Kranj, Slovenia</p>
+                    <p>Your perfect holiday destination in Bohinj, Slovenia</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p class="mb-1"><i class="fas fa-phone"></i> +386 XX XXX XXX</p>
-                    <p class="mb-1"><i class="fas fa-envelope"></i> info@apartmaivano.com</p>
-                    <p><i class="fas fa-map-marker-alt"></i> Kranj, Slovenia</p>
+                    <p class="mb-1"><i class="fas fa-phone"></i> +386 40 695 807</p>
+                    <p class="mb-1"><i class="fas fa-envelope"></i> mmsabalic@gmail.com</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Srednja vas v Bohinju, Slovenia</p>
                 </div>
             </div>
             <hr class="bg-white">

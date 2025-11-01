@@ -41,19 +41,19 @@
                             <ul class="list-unstyled">
                                 <li class="mb-3">
                                     <i class="fas fa-user text-primary me-2"></i>
-                                    <strong>Owner:</strong> Ivano Sabalič
+                                    <strong>Owner:</strong> Martina Mašić Sabalić
                                 </li>
                                 <li class="mb-3">
                                     <i class="fas fa-phone text-primary me-2"></i>
-                                    <strong>Phone:</strong> +386 XX XXX XXX
+                                    <strong>Phone:</strong> +386 40 395 807
                                 </li>
                                 <li class="mb-3">
                                     <i class="fas fa-envelope text-primary me-2"></i>
-                                    <strong>Email:</strong> info@apartmaivano.com
+                                    <strong>Email:</strong> mmsabalic@gmail.com
                                 </li>
                                 <li class="mb-3">
                                     <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                                    <strong>Location:</strong> Kranj, Slovenia
+                                    <strong>Location:</strong> Srednja vas v Bohinju, Slovenia
                                 </li>
                             </ul>
                         </div>
@@ -69,8 +69,7 @@
                             <ul>
                                 <li>Slovenian (native)</li>
                                 <li>English</li>
-                                <li>German</li>
-                                <li>Croatian/Serbian</li>
+                                <li>Slight German</li>
                             </ul>
                         </div>
                     </div>
