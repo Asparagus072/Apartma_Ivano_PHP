@@ -10,7 +10,7 @@ define('DB_PATH', 'database/apartma.db');
 define('SITE_NAME', 'Apartma Ivano');
 define('MAX_GUESTS', 6);
 define('ADMIN_USER', 'admin');
-define('ADMIN_PASS', '$2y$10$yOI0Ufb5GZXAuER6dBh.HOdEuw8vwMp.asGwHIoyQcqOIIOeIdDV6'); // Use password_hash('your_password', PASSWORD_DEFAULT)
+define('ADMIN_PASS', '$2y$10$yOI0Ufb5GZXAuER6dBh.HOdEuw8vwMp.asGwHIoyQcqOIIOeIdDV6');
 
 // Initialize database
 require_once 'classes/Database.php';
@@ -308,6 +308,6 @@ unset($_SESSION['flash']);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="assets/js/main.js"></script>
+    <script src="static/js/main.js"></script>
 </body>
 </html>
