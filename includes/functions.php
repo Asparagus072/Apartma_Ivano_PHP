@@ -60,7 +60,7 @@ function sendEmail($to, $subject, $message) {
     // In production, use PHPMailer or similar
     // For now, just return true
     $headers = "From: noreply@apartmaivano.com\r\n";
-    $headers .= "Reply-To: info@apartmaivano.com\r\n";
+    $headers .= "Reply-To: mmsabalic@gmail.com\r\n";
     $headers .= "MIME-Version: 1.0\r\n";
     $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
     
