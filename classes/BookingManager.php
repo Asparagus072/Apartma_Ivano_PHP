@@ -4,11 +4,10 @@
  */
 class BookingSystem {
     private $db;
-    private $pricing = [
-        'low' => 80,    // Jan-Mar, Nov-Dec
-        'mid' => 100,   // Apr-May, Sep-Oct
-        'high' => 130,  // Jun-Aug
-        'peak' => 150   // Christmas/New Year
+    private $pricing = [      
+        'mid' => 100,   // Jan-Mar, Nov-Dec
+        'high' => 130,  // Apr-May, Sep-Oct
+        'peak' => 150   // Jun-Aug
     ];
     
     public function __construct($database) {
@@ -38,21 +37,16 @@ class BookingSystem {
             $month = (int)$start->format('n');
             $dateStr = $start->format('Y-m-d');
             
-            // Peak season (Christmas/New Year)
-            if (($start->format('m-d') >= '12-20') || ($start->format('m-d') <= '01-07')) {
+            if ($month >= 6 && $month <= 8) {
                 $total += $this->pricing['peak'];
-            }
-            // High season (Jun-Aug)
-            elseif ($month >= 6 && $month <= 8) {
-                $total += $this->pricing['high'];
             }
             // Mid season (Apr-May, Sep-Oct)
             elseif (($month >= 4 && $month <= 5) || ($month >= 9 && $month <= 10)) {
-                $total += $this->pricing['mid'];
+                $total += $this->pricing['high'];
             }
             // Low season
             else {
-                $total += $this->pricing['low'];
+                $total += $this->pricing['mid'];
             }
             
             $start->add(new DateInterval('P1D'));
@@ -64,8 +58,6 @@ class BookingSystem {
             $discount = $total * 0.15; // 15% off for 14+ nights
         } elseif ($nights >= 7) {
             $discount = $total * 0.10; // 10% off for 7+ nights
-        } elseif ($nights >= 3) {
-            $discount = $total * 0.05; // 5% off for 3+ nights
         }
         
         return [
