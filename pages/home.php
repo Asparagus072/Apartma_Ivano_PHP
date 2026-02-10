@@ -257,7 +257,7 @@
                     <div class="row text-center justify-content-center">
                         <div class="col-md-5">
                             <div class="p-3">
-                                <div class="price-badge mb-2">€120/night</div>
+                                <div class="price-badge mb-2">€130/night</div>
                                 <h6>Pre-Post Season</h6>
                                 <small class="text-muted">June, Sep, Oct</small>
                             </div>
