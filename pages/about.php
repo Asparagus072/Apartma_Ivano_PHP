@@ -50,6 +50,19 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <h3><i class="fas fa-map-marker-alt text-primary"></i> <?php echo __('about.location'); ?></h3>
+
+                    <!-- GOOGLE MAP -->
+                    <div class="mb-4">
+                        <iframe
+                            src="https://www.google.com/maps?q=Srednja%20vas%20v%20Bohinju%20101b%204267%20Bohinj&output=embed"
+                            width="100%"
+                            height="350"
+                            style="border:0; border-radius:10px;"
+                            allowfullscreen=""
+                            loading="lazy">
+                        </iframe>
+                    </div>
+
                     <p><strong><?php echo __('loc.addr'); ?>:</strong> 101b Srednja vas v Bohinju, 4267 Bohinj, Slovenia</p>
                     <ul>
                         <li><?php echo __('loc.1'); ?></li>
