@@ -366,7 +366,7 @@
     <!-- CTA -->
     <div class="row">
         <div class="col-lg-10 mx-auto">
-            <div class="card bg-primary text-white border-0 shadow-lg">
+            <div class="card text-white border-0 shadow-lg" style="background: linear-gradient(135deg, #1976D2, #2E7D32);">
                 <div class="card-body p-5 text-center">
                     <h2 class="display-6 mb-3"><?php echo __('home.cta_title'); ?></h2>
                     <p class="lead mb-4"><?php echo __('home.cta_sub'); ?></p>
